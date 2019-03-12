@@ -52,7 +52,7 @@ class WebmEncoder {
     vpx_codec_ctx_t ctx;
     unsigned int frame_cnt = 0;
     vpx_codec_enc_cfg_t cfg;
-    vpx_codec_iface_t* iface = vpx_codec_vp8_cx();
+    vpx_codec_iface_t* iface = vpx_codec_vp9_cx();
     vpx_image_t *img;
     std::string last_error;
     IMkvWriter *mkv_writer;
