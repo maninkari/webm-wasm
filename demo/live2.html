@@ -1,0 +1,167 @@
+<!--
+Copyright 2018 Google Inc. All Rights Reserved.
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+    http://www.apache.org/licenses/LICENSE-2.0
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+-->
+<!DOCTYPE html>
+<h1>Live webm wasm demo</h1>
+<script>
+    function test() {
+        const framerate = 30;
+        const bitrate = 200;
+        const width = 400;
+        const height = 400;
+        var worker;
+        function createBufferURL(buffer, type = '') {
+            return URL.createObjectURL(new Blob([buffer], {
+                type
+            }));
+        }
+
+        function cameraStream({
+                                  width, height
+                              }) {
+            const cvs = document.createElement("canvas");
+            const video = document.createElement("video");
+            document.body.appendChild(video);
+            [cvs.width, cvs.height] = [width, height];
+            const ctx = cvs.getContext("2d");
+            const frameTimeout = 1000 / framerate;
+            let n = 0;
+            return new ReadableStream({
+                async start(controller) {
+
+                    const stream = await navigator.mediaDevices.getUserMedia({
+                        video: true,
+                        audio: false
+                    });
+                    video.srcObject = stream;
+
+                    await nextEvent(video, "canplay");
+
+
+                    return video.play()
+                },
+                async pull(controller) {
+
+                    await new Promise(r => setTimeout(r, frameTimeout))
+                    if (++n >= 200) {
+                        controller.close();
+                        worker.postMessage(null);
+                    }
+
+                    ctx.drawImage(video, 0, 0, width, height);
+                    controller.enqueue(
+                        ctx.getImageData(0, 0, width, height)
+                    );
+                }
+
+            });
+        }
+        // Returns the next <name> event of `target`.
+        function nextEvent(target, name) {
+            return new Promise(resolve => {
+                target.addEventListener(name, resolve, {
+                    once: true
+                });
+            });
+        }
+        async function init() {
+            try {
+                const workerBuffer = await fetch("https://unpkg.com/webm-wasm@0.4.1/dist/webm-worker.js").then(r => r.arrayBuffer());
+                worker = new Worker(createBufferURL(workerBuffer, "text/javascript"));
+                worker.postMessage("https://unpkg.com/webm-wasm@0.4.1/dist/webm-wasm.wasm");
+                worker.postMessage({
+                    width,
+                    height,
+                    realtime: true,
+                    kLive: true
+                });
+                console.log(await nextEvent(worker, "message"));
+                // worker.addEventListener("message", e => { console.log(e) });
+                cameraStream({
+                    width, height
+                })
+                    .pipeTo(new WritableStream({
+                        write(image) {
+                            console.log('writing data at ' + performance.now());
+                            //worker.addEventListener("message", e => { console.log(e) }, {once: true});
+
+                            worker.postMessage(image.data.buffer, [image.data.buffer]);
+
+                        }
+                    })).catch(e => { throw e });
+                const mediaSource = new MediaSource();
+                mediaSource.onsourceopen = e => {
+                    //URL.revokeObjectURL(video.src);
+                    console.log(e);
+                    const sourceBuffer = mediaSource.addSourceBuffer('video/webm; codecs=vp8');
+                    sourceBuffer.addEventListener("updateend", e => {
+                        console.log(e);
+                        /*
+                                   worker.addEventListener("message", ev => {
+                                     console.log(ev);
+                                     if (!ev.data) {
+                                       console.log(ev.data);
+                                   // return mediaSource.endOfStream();
+                                     } else {
+                                       sourceBuffer.appendBuffer(ev.data);
+                                     }
+                                   }, {once: true});
+                        */
+
+                    });
+                    worker.addEventListener("message", ev => {
+
+                        const x = ev.data.slice(0);
+                        const v = document.createElement("video");
+                        v.src = URL.createObjectURL(new Blob([x], {type:"video/webm"}));
+                        v.controls = true;
+                        document.body.appendChild(v);
+                        console.log(ev);
+                        sourceBuffer.appendBuffer(new Uint8Array(ev.data));
+                        ;
+                    });
+
+                };
+                const video = document.createElement("video");
+                video.width = width;
+                video.height = height;
+                video.muted = true;
+                // video.autoplay = true;
+                // video.loop = true;
+                video.controls = true;
+                video.src = URL.createObjectURL(mediaSource);
+                document.body.appendChild(video);
+                video.addEventListener("canplay", e => {
+                    console.log(e, e.target);
+                    // video.play().catch(e => { throw e });
+                });
+                video.addEventListener("loadedmetadata", e => {
+                    console.log(e, e.target);
+                    // video.play().catch(e => { throw e });
+                });
+            } catch(e) {
+                throw e;
+            }
+        }
+        init().catch(e => {console.error(e); console.trace();});
+    }
+    var go = document.createElement("div");
+    go.innerHTML = "Go";
+    document.body.appendChild(go);
+
+    go.onclick = ev => {
+        console.log(ev);
+
+        // ev.target.remove();
+        test();
+    };
+</script>
