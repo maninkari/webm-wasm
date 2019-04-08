@@ -14,10 +14,10 @@ limitations under the License.
 <h1>Live webm wasm demo</h1>
 <script>
     function test() {
-        const framerate = 30;
+        const framerate = 15;
         const bitrate = 200;
-        const width = 400;
-        const height = 400;
+        const width = 300;
+        const height = 150;
         var worker;
         function createBufferURL(buffer, type = '') {
             return URL.createObjectURL(new Blob([buffer], {
@@ -52,7 +52,7 @@ limitations under the License.
                 async pull(controller) {
 
                     await new Promise(r => setTimeout(r, frameTimeout))
-                    if (++n >= 200) {
+                    if (++n >= 50) {
                         controller.close();
                         worker.postMessage(null);
                     }
@@ -102,7 +102,7 @@ limitations under the License.
                 mediaSource.onsourceopen = e => {
                     //URL.revokeObjectURL(video.src);
                     console.log(e);
-                    const sourceBuffer = mediaSource.addSourceBuffer('video/webm; codecs=vp8');
+                    const sourceBuffer = mediaSource.addSourceBuffer('video/webm; codecs=vp9');
                     sourceBuffer.addEventListener("updateend", e => {
                         console.log(e);
                         /*
