@@ -16,8 +16,8 @@ limitations under the License.
     function test() {
         const framerate = 30;
         const bitrate = 200;
-        const width = 400;
-        const height = 400;
+        const width = 640;
+        const height = 480;
         var worker;
         function createBufferURL(buffer, type = '') {
             return URL.createObjectURL(new Blob([buffer], {
@@ -47,7 +47,7 @@ limitations under the License.
                     await nextEvent(video, "canplay");
 
 
-                    return video.play()
+                    return video.play().catch(e => { throw e });
                 },
                 async pull(controller) {
 
@@ -75,9 +75,9 @@ limitations under the License.
         }
         async function init() {
             try {
-                const workerBuffer = await fetch("https://unpkg.com/webm-wasm@0.4.1/dist/webm-worker.js").then(r => r.arrayBuffer());
+                const workerBuffer = await fetch("../dist/webm-worker.js").then(r => r.arrayBuffer());
                 worker = new Worker(createBufferURL(workerBuffer, "text/javascript"));
-                worker.postMessage("https://unpkg.com/webm-wasm@0.4.1/dist/webm-wasm.wasm");
+                worker.postMessage("http://localhost:8080/dist/webm-wasm.wasm");
                 worker.postMessage({
                     width,
                     height,
@@ -91,8 +91,10 @@ limitations under the License.
                 })
                     .pipeTo(new WritableStream({
                         write(image) {
-                            console.log('writing data at ' + performance.now());
-                            //worker.addEventListener("message", e => { console.log(e) }, {once: true});
+                            // console.log('writing data at ' + performance.now());
+                            worker.addEventListener("message", e => { console.log(e) }, {once: true});
+
+                            console.log(image);
 
                             worker.postMessage(image.data.buffer, [image.data.buffer]);
 
@@ -102,30 +104,30 @@ limitations under the License.
                 mediaSource.onsourceopen = e => {
                     //URL.revokeObjectURL(video.src);
                     console.log(e);
-                    const sourceBuffer = mediaSource.addSourceBuffer('video/webm; codecs=vp8');
+                    const sourceBuffer = mediaSource.addSourceBuffer('video/webm; codecs=vp9');
                     sourceBuffer.addEventListener("updateend", e => {
                         console.log(e);
-                        /*
-                                   worker.addEventListener("message", ev => {
-                                     console.log(ev);
-                                     if (!ev.data) {
-                                       console.log(ev.data);
-                                   // return mediaSource.endOfStream();
-                                     } else {
-                                       sourceBuffer.appendBuffer(ev.data);
-                                     }
-                                   }, {once: true});
-                        */
+
+                    worker.addEventListener("message", ev => {
+                     console.log(ev);
+                         if (!ev.data) {
+                             console.log(ev.data);
+                            // return mediaSource.endOfStream();
+                         } else {
+                             sourceBuffer.appendBuffer(ev.data);
+                         }
+                    }, {once: true});
 
                     });
+
                     worker.addEventListener("message", ev => {
 
+                        console.log(ev);
                         const x = ev.data.slice(0);
                         const v = document.createElement("video");
                         v.src = URL.createObjectURL(new Blob([x], {type:"video/webm"}));
                         v.controls = true;
                         document.body.appendChild(v);
-                        console.log(ev);
                         sourceBuffer.appendBuffer(new Uint8Array(ev.data));
                         ;
                     });
