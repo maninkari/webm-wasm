@@ -52,7 +52,7 @@ limitations under the License.
                 async pull(controller) {
 
                     await new Promise(r => setTimeout(r, frameTimeout))
-                    if (++n >= 50) {
+                    if (++n >= 100) {
                         controller.close();
                         worker.postMessage(null);
                     }
@@ -76,16 +76,24 @@ limitations under the License.
         async function init() {
             try {
                 const workerBuffer = await fetch("https://unpkg.com/webm-wasm@0.4.1/dist/webm-worker.js").then(r => r.arrayBuffer());
+                // const workerBuffer = await fetch("../dist/webm-worker.js").then(r => r.arrayBuffer());
                 worker = new Worker(createBufferURL(workerBuffer, "text/javascript"));
                 worker.postMessage("https://unpkg.com/webm-wasm@0.4.1/dist/webm-wasm.wasm");
+                // worker.postMessage("http://localhost:8080/dist/webm-wasm.wasm");
+                // await nextEvent(worker, "message");
                 worker.postMessage({
                     width,
                     height,
                     realtime: true,
                     kLive: true
                 });
+                worker.onmessage = ev => {
+                    if (ev.data) {
+                        console.log(ev);
+                    }
+                };
                 console.log(await nextEvent(worker, "message"));
-                // worker.addEventListener("message", e => { console.log(e) });
+                worker.addEventListener("message", e => { console.log(e) });
                 cameraStream({
                     width, height
                 })
@@ -103,32 +111,41 @@ limitations under the License.
                     //URL.revokeObjectURL(video.src);
                     console.log(e);
                     const sourceBuffer = mediaSource.addSourceBuffer('video/webm; codecs=vp9');
+
+                    // worker.onmessage = ev => {
+                    //     if (ev.data) {
+                    //         console.log(ev);
+                    //         sourceBuffer.appendBuffer(ev.data);
+                    //     } else {
+                    //         return mediaSource.endOfStream();
+                    //     }
+                    // };
+
                     sourceBuffer.addEventListener("updateend", e => {
                         console.log(e);
-                        /*
-                                   worker.addEventListener("message", ev => {
-                                     console.log(ev);
-                                     if (!ev.data) {
-                                       console.log(ev.data);
-                                   // return mediaSource.endOfStream();
-                                     } else {
-                                       sourceBuffer.appendBuffer(ev.data);
-                                     }
-                                   }, {once: true});
-                        */
+                        worker.addEventListener("message", ev => {
+                            console.log(ev);
+                            if (!ev.data) {
+                            //     console.log(ev.data);
+                                return mediaSource.endOfStream();
+                            } else {
+                            //     sourceBuffer.appendBuffer(ev.data);
+                            }
+                        });
 
                     });
-                    worker.addEventListener("message", ev => {
-
-                        const x = ev.data.slice(0);
-                        const v = document.createElement("video");
-                        v.src = URL.createObjectURL(new Blob([x], {type:"video/webm"}));
-                        v.controls = true;
-                        document.body.appendChild(v);
+                    worker.onmessage = ev => {
                         console.log(ev);
-                        sourceBuffer.appendBuffer(new Uint8Array(ev.data));
-                        ;
-                    });
+                        if (ev.data) {
+                            const x = ev.data.slice(0);
+                            const v = document.createElement("video");
+                            v.src = URL.createObjectURL(new Blob([x], {type:"video/webm"}));
+                            v.controls = true;
+                            document.body.appendChild(v);
+                            console.log(ev);
+                            sourceBuffer.appendBuffer(new Uint8Array(ev.data));
+                        }
+                    };
 
                 };
                 const video = document.createElement("video");

@@ -1,0 +1,157 @@
+<!--
+Copyright 2018 Google Inc. All Rights Reserved.
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+    http://www.apache.org/licenses/LICENSE-2.0
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+-->
+<!DOCTYPE html>
+<h1>Live webm wasm demo</h1>
+<button id="go">Go</button>
+<script>
+  const framerate = 30;
+  const bitrate = 200;
+  const width = 640;
+  const height = 480;
+  let finished = false;
+  let worker;
+  let webm = new Uint8Array(0);
+
+  function createBufferURL(buffer, type = '') {
+    return URL.createObjectURL(new Blob([buffer], {type}));
+  }
+
+  function cameraStream({width, height}) {
+      const cvs = document.createElement("canvas");
+      const video = document.createElement("video");
+      document.body.appendChild(video);
+      [cvs.width, cvs.height] = [width, height];
+      const ctx = cvs.getContext("2d");
+      const frameTimeout = 1000 / framerate;
+      let n = 0;
+      return new ReadableStream({
+          async start(controller) {
+
+              const stream = await navigator.mediaDevices.getUserMedia({
+                  video: true,
+                  audio: false
+              });
+              video.srcObject = stream;
+
+              await nextEvent(video, "canplay");
+
+
+              return video.play()
+          },
+          async pull(controller) {
+
+              await new Promise(r => setTimeout(r, frameTimeout))
+              if (++n >= 150) {
+                  controller.close();
+                  worker.postMessage(null);
+              } else {
+                  ctx.drawImage(video, 0, 0, width, height);
+                  controller.enqueue(
+                      ctx.getImageData(0, 0, width, height)
+                  );
+              }
+          }
+
+      });
+  }
+
+  // Returns the next <name> event of `target`.
+  function nextEvent(target, name) {
+    return new Promise(resolve => {
+      target.addEventListener(name, resolve, { once: true });
+    });
+  }
+
+  async function init() {
+    const workerBuffer = await fetch("https://unpkg.com/webm-wasm@0.4.1/dist/webm-worker.js").then(r => r.arrayBuffer());
+    // const workerBuffer = await fetch("../dist/webm-worker.js").then(r => r.arrayBuffer());
+    worker = new Worker(createBufferURL(workerBuffer, "text/javascript"));
+    worker.postMessage("https://unpkg.com/webm-wasm@0.4.1/dist/webm-wasm.wasm");
+    // worker.postMessage("http://localhost:8080/dist/webm-wasm.wasm");
+    await nextEvent(worker, "message");
+    worker.postMessage({
+      width,
+      height,
+      realtime: true
+    });
+    worker.addEventListener("message", ev => {
+      if (!ev.data) {
+          finished = true;
+          console.log(ev.data, finished);
+      }
+    });
+    cameraStream({width, height})
+      .pipeTo(new WritableStream({
+        write(image) {
+          worker.postMessage(image.data.buffer, [image.data.buffer]);
+        }
+      }));
+
+    const mediaSource = new MediaSource();
+    mediaSource.onsourceopen = () => {
+      const sourceBuffer = mediaSource.addSourceBuffer(`video/webm; codecs="vp8"`);
+        sourceBuffer.addEventListener("updateend", e => {
+          if (finished) {
+            console.log('Finished', e);
+            // todo fix occasional error - The 'updating' attribute is true on this MediaSource's SourceBuffers.
+            mediaSource.endOfStream();
+            // allow video to be saved within the browser
+            const video = document.getElementsByTagName("video")[1];
+            video.src = URL.createObjectURL(new Blob([webm], {type:"video/webm"}));
+          }
+        });
+      worker.onmessage = ev => {
+        if (ev.data) {
+          console.log(ev);
+          sourceBuffer.appendBuffer(ev.data);
+          // store video as whole file
+          webm = _appendBuffer(webm, ev.data);
+          // webm = _appendBuffer(webm, ev.data.slice(0));
+
+
+        } else {
+          // return mediaSource.endOfStream();
+        }
+      };
+    };
+
+    const video = document.createElement("video");
+    video.muted = true;
+    video.autoplay = true;
+    video.loop = true;
+    video.controls = true;
+    video.src = URL.createObjectURL(mediaSource);
+    document.body.append(video);
+    video.play();
+  }
+
+  /**
+   * Creates a new Uint8Array based on two different ArrayBuffers
+   *
+   * @private
+   * @param {ArrayBuffers} buffer1 The first buffer.
+   * @param {ArrayBuffers} buffer2 The second buffer.
+   * @return {ArrayBuffers} The new ArrayBuffer created out of the two.
+   */
+  var _appendBuffer = function(buffer1, buffer2) {
+      var tmp = new Uint8Array(buffer1.byteLength + buffer2.byteLength);
+      tmp.set(new Uint8Array(buffer1), 0);
+      tmp.set(new Uint8Array(buffer2), buffer1.byteLength);
+      return tmp.buffer;
+  };
+
+  document.all.go.onclick = ev => {
+    ev.target.remove();
+    init();
+  };
+</script>
