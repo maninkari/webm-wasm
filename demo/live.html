@@ -73,11 +73,11 @@ limitations under the License.
   }
 
   async function init() {
-    const workerBuffer = await fetch("https://unpkg.com/webm-wasm@0.4.1/dist/webm-worker.js").then(r => r.arrayBuffer());
-    // const workerBuffer = await fetch("../dist/webm-worker.js").then(r => r.arrayBuffer());
+    // const workerBuffer = await fetch("https://unpkg.com/webm-wasm@0.4.1/dist/webm-worker.js").then(r => r.arrayBuffer());
+    const workerBuffer = await fetch("../dist/webm-worker.js").then(r => r.arrayBuffer());
     worker = new Worker(createBufferURL(workerBuffer, "text/javascript"));
-    worker.postMessage("https://unpkg.com/webm-wasm@0.4.1/dist/webm-wasm.wasm");
-    // worker.postMessage("http://localhost:8080/dist/webm-wasm.wasm");
+    // worker.postMessage("https://unpkg.com/webm-wasm@0.4.1/dist/webm-wasm.wasm");
+    worker.postMessage("http://localhost:8080/dist/webm-wasm.wasm");
     await nextEvent(worker, "message");
     worker.postMessage({
       width,
