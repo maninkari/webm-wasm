@@ -172,6 +172,7 @@ bool WebmEncoder::InitCodec(int timebase_num, int timebase_den, unsigned int wid
   cfg.g_timebase.den = timebase_den;
   cfg.g_w = width;
   cfg.g_h = height;
+  cfg.g_threads = 1;
   cfg.rc_target_bitrate = bitrate;
 
   err = vpx_codec_enc_init(

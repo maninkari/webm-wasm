@@ -32,7 +32,7 @@ limitations under the License.
       document.body.appendChild(video);
       [cvs.width, cvs.height] = [width, height];
       const ctx = cvs.getContext("2d");
-      const frameTimeout = 1000 / framerate;
+      const frameTimeout = 100 / framerate;
       let n = 0;
       return new ReadableStream({
           async start(controller) {
@@ -51,7 +51,7 @@ limitations under the License.
           async pull(controller) {
 
               await new Promise(r => setTimeout(r, frameTimeout))
-              if (++n >= 150) {
+              if (++n >= 40) {
                   controller.close();
                   worker.postMessage(null);
               } else {
@@ -88,6 +88,22 @@ limitations under the License.
       if (!ev.data) {
           finished = true;
           console.log(ev.data, finished);
+
+          const blob = new Blob([webm]);
+          const fileName = 'video.webm';
+
+          const link = document.createElement('a');
+          // Browsers that support HTML5 download attribute
+          if (link.download !== undefined) {
+              const url = URL.createObjectURL(blob);
+              link.setAttribute('href', url);
+              link.setAttribute('download', fileName);
+              link.style.visibility = 'hidden';
+              document.body.appendChild(link);
+              link.click();
+              document.body.removeChild(link);
+          }
+
       }
     });
     cameraStream({width, height})
@@ -99,7 +115,7 @@ limitations under the License.
 
     const mediaSource = new MediaSource();
     mediaSource.onsourceopen = () => {
-      const sourceBuffer = mediaSource.addSourceBuffer(`video/webm; codecs="vp8"`);
+      const sourceBuffer = mediaSource.addSourceBuffer(`video/webm; codecs="vp9"`);
         sourceBuffer.addEventListener("updateend", e => {
           if (finished) {
             console.log('Finished', e);
@@ -113,7 +129,7 @@ limitations under the License.
       worker.onmessage = ev => {
         if (ev.data) {
           console.log(ev);
-          sourceBuffer.appendBuffer(ev.data);
+          // sourceBuffer.appendBuffer(ev.data);
           // store video as whole file
           webm = _appendBuffer(webm, ev.data);
           // webm = _appendBuffer(webm, ev.data.slice(0));
