@@ -89,8 +89,11 @@ limitations under the License.
           finished = true;
           console.log(ev.data, finished);
 
-          const blob = new Blob([webm]);
+          const blob = new Blob([webm], {type:"video/webm"});
           const fileName = 'video.webm';
+
+          const video = document.getElementsByTagName("video")[1];
+          video.src = URL.createObjectURL(blob);
 
           const link = document.createElement('a');
           // Browsers that support HTML5 download attribute
