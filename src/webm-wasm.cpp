@@ -203,6 +203,8 @@ bool WebmEncoder::InitMkvWriter(bool klive, val cb) {
     last_error = "Could not add video track";
     return false;
   }
+  Track* const vid_track = main_segment->GetTrackByNumber(1);
+  vid_track->set_codec_id("V_VP9");
   main_segment->set_mode(klive ? Segment::Mode::kLive : Segment::Mode::kFile);
   auto info = main_segment->GetSegmentInfo();
   // Branding, yo
