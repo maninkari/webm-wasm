@@ -11,13 +11,19 @@ See the License for the specific language governing permissions and
 limitations under the License.
 -->
 <!DOCTYPE html>
+<head>
+    <meta http-equiv="origin-trial" data-feature="WebAssembly Threads" data-expires="2019-07-23" content="AjN9bhutEkITBviplUk4U5CTvgrvR6F0+UP1k4Gl/OJpvPk0sUgUa69xtknb5jh6hA/IZm5Mhl0Fxd38TTr3vQ0AAABVeyJvcmlnaW4iOiJodHRwOi8vbG9jYWxob3N0OjgwODAiLCJmZWF0dXJlIjoiV2ViQXNzZW1ibHlUaHJlYWRzIiwiZXhwaXJ5IjoxNTYzOTE2NTY2fQ==">
+</head>
 <h1>Live webm wasm demo</h1>
 <button id="go">Go</button>
 <script>
-  const framerate = 30;
+  const framerate = 5;
   const bitrate = 200;
-  const width = 640;
-  const height = 480;
+  const width = 120;
+  const height = 160;
+  // const width = 640;
+  // const height = 480;
+  let count = 0;
   let finished = false;
   let worker;
   let webm = new Uint8Array(0);
@@ -32,7 +38,7 @@ limitations under the License.
       document.body.appendChild(video);
       [cvs.width, cvs.height] = [width, height];
       const ctx = cvs.getContext("2d");
-      const frameTimeout = 100 / framerate;
+      const frameTimeout = 1000 / framerate;
       let n = 0;
       return new ReadableStream({
           async start(controller) {
@@ -51,11 +57,12 @@ limitations under the License.
           async pull(controller) {
 
               await new Promise(r => setTimeout(r, frameTimeout))
-              if (++n >= 40) {
+              if (count >= 17 + 14) { // 17 frame delay !?
                   controller.close();
                   worker.postMessage(null);
               } else {
-                  ctx.drawImage(video, 0, 0, width, height);
+                  // ctx.drawImage(video, 0, 0, width, height);
+                  ctx.drawImage(video, -260, -160, 640, 480); // crop central portrait from vga resolution
                   controller.enqueue(
                       ctx.getImageData(0, 0, width, height)
                   );
@@ -82,7 +89,8 @@ limitations under the License.
     worker.postMessage({
       width,
       height,
-      realtime: true
+      realtime: true,
+      timebaseDen: framerate,
     });
     worker.addEventListener("message", ev => {
       if (!ev.data) {
@@ -131,6 +139,7 @@ limitations under the License.
         });
       worker.onmessage = ev => {
         if (ev.data) {
+          count++;
           console.log(ev);
           // sourceBuffer.appendBuffer(ev.data);
           // store video as whole file
@@ -145,6 +154,8 @@ limitations under the License.
     };
 
     const video = document.createElement("video");
+    video.width = width;
+    video.height = height;
     video.muted = true;
     video.autoplay = true;
     video.loop = true;
