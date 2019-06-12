@@ -39,6 +39,7 @@ test -n "$SKIP_LIBVPX" || (
   emconfigure ../node_modules/libvpx/configure \
     --disable-vp9-decoder \
     --disable-vp8-decoder \
+    --disable-vp8-encoder \
     --target=generic-gnu
   emmake make
 )
@@ -66,11 +67,9 @@ echo "============================================="
   emcc \
     ${OPTIMIZE} \
     --bind \
-    --minify 0 \
-    -g4 \
     -s STRICT=1 \
     -s ALLOW_MEMORY_GROWTH=1 \
-    -s ASSERTIONS=2 \
+    -s ASSERTIONS=0 \
     -s MODULARIZE=1 \
     -s FILESYSTEM=0 \
     -s EXPORT_ES6=1 \
