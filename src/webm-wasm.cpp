@@ -86,6 +86,11 @@ WebmEncoder::~WebmEncoder() {
 bool WebmEncoder::addRGBAFrame(std::string rgba) {
   RGBAtoVPXImage((const uint8_t*) rgba.c_str());
   if(!EncodeFrame(img)) {
+  last_error = "Could not encode frame";
+    return false;
+  }
+  if(!EncodeFrame(NULL)) {
+    last_error = "Could not flush frame";
     return false;
   }
   if(realtime) {
