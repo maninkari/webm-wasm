@@ -185,6 +185,16 @@ bool WebmEncoder::InitCodec(int timebase_num, int timebase_den, unsigned int wid
     last_error = std::string(vpx_codec_err_to_string(err));
     return false;
   }
+  // Set lossless VP9
+  err = vpx_codec_control_(
+    &ctx,
+    VP9E_SET_LOSSLESS,
+    1
+  );
+  if(err != VPX_CODEC_OK) {
+    last_error = std::string(vpx_codec_err_to_string(err));
+    return false;
+  }
   return true;
 }
 
