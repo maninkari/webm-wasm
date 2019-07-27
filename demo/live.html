@@ -11,13 +11,10 @@ See the License for the specific language governing permissions and
 limitations under the License.
 -->
 <!DOCTYPE html>
-<head>
-    <meta http-equiv="origin-trial" data-feature="WebAssembly Threads" data-expires="2019-07-23" content="AjN9bhutEkITBviplUk4U5CTvgrvR6F0+UP1k4Gl/OJpvPk0sUgUa69xtknb5jh6hA/IZm5Mhl0Fxd38TTr3vQ0AAABVeyJvcmlnaW4iOiJodHRwOi8vbG9jYWxob3N0OjgwODAiLCJmZWF0dXJlIjoiV2ViQXNzZW1ibHlUaHJlYWRzIiwiZXhwaXJ5IjoxNTYzOTE2NTY2fQ==">
-</head>
 <h1>Live webm wasm demo</h1>
 <button id="go">Go</button>
 <script>
-  const framerate = 5;
+  const framerate = 15;
   const bitrate = 200;
   const width = 120;
   const height = 160;
@@ -28,39 +25,56 @@ limitations under the License.
   let worker;
   let webm = new Uint8Array(0);
 
+  const video = document.createElement("video");
+  video.style.transform = "scaleX(-1)";
+  document.body.appendChild(video);
+
+  cameraStart();
+
   function createBufferURL(buffer, type = '') {
     return URL.createObjectURL(new Blob([buffer], {type}));
   }
 
+  async function cameraStart() {
+      const stream = await navigator.mediaDevices.getUserMedia({
+          video: true,
+          audio: false
+      });
+      video.srcObject = stream;
+      video.play();
+
+      // const workerBuffer = await fetch("https://unpkg.com/webm-wasm@0.4.1/dist/webm-worker.js").then(r => r.arrayBuffer());
+      const workerBuffer = await fetch("../dist/webm-worker.js").then(r => r.arrayBuffer());
+      worker = new Worker(createBufferURL(workerBuffer, "text/javascript"));
+      // worker.postMessage("https://unpkg.com/webm-wasm@0.4.1/dist/webm-wasm.wasm");
+      worker.postMessage("http://localhost:8083/dist/webm-wasm.wasm");
+      await nextEvent(worker, "message");
+      worker.postMessage({
+          width,
+          height,
+          realtime: true,
+          timebaseDen: framerate,
+      });
+  }
+
   function cameraStream({width, height}) {
       const cvs = document.createElement("canvas");
-      const video = document.createElement("video");
-      document.body.appendChild(video);
+
       [cvs.width, cvs.height] = [width, height];
       const ctx = cvs.getContext("2d");
       const frameTimeout = 1000 / framerate;
       let n = 0;
       return new ReadableStream({
           async start(controller) {
-
-              const stream = await navigator.mediaDevices.getUserMedia({
-                  video: true,
-                  audio: false
-              });
-              video.srcObject = stream;
-
-              await nextEvent(video, "canplay");
-
-
               return video.play()
           },
           async pull(controller) {
-
               await new Promise(r => setTimeout(r, frameTimeout))
-              if (count >= 17 + 14) { // 17 frame delay !?
+              if (count >= 30) {
                   controller.close();
                   worker.postMessage(null);
               } else {
+                  count++;
                   // ctx.drawImage(video, 0, 0, width, height);
                   ctx.drawImage(video, -260, -160, 640, 480); // crop central portrait from vga resolution
                   controller.enqueue(
@@ -80,18 +94,6 @@ limitations under the License.
   }
 
   async function init() {
-    // const workerBuffer = await fetch("https://unpkg.com/webm-wasm@0.4.1/dist/webm-worker.js").then(r => r.arrayBuffer());
-    const workerBuffer = await fetch("../dist/webm-worker.js").then(r => r.arrayBuffer());
-    worker = new Worker(createBufferURL(workerBuffer, "text/javascript"));
-    // worker.postMessage("https://unpkg.com/webm-wasm@0.4.1/dist/webm-wasm.wasm");
-    worker.postMessage("http://localhost:8080/dist/webm-wasm.wasm");
-    await nextEvent(worker, "message");
-    worker.postMessage({
-      width,
-      height,
-      realtime: true,
-      timebaseDen: framerate,
-    });
     worker.addEventListener("message", ev => {
       if (!ev.data) {
           finished = true;
@@ -139,14 +141,9 @@ limitations under the License.
         });
       worker.onmessage = ev => {
         if (ev.data) {
-          count++;
           console.log(ev);
-          // sourceBuffer.appendBuffer(ev.data);
           // store video as whole file
           webm = _appendBuffer(webm, ev.data);
-          // webm = _appendBuffer(webm, ev.data.slice(0));
-
-
         } else {
           // return mediaSource.endOfStream();
         }
