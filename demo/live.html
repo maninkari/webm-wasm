@@ -16,14 +16,15 @@ limitations under the License.
 <script>
   const framerate = 15;
   const bitrate = 200;
-  const width = 120;
-  const height = 160;
-  // const width = 640;
-  // const height = 480;
+  // const width = 120;
+  // const height = 160;
+  const width = 640;
+  const height = 480;
   let count = 0;
   let finished = false;
   let worker;
   let webm = new Uint8Array(0);
+  let startTime;
 
   const video = document.createElement("video");
   video.style.transform = "scaleX(-1)";
@@ -47,7 +48,7 @@ limitations under the License.
       const workerBuffer = await fetch("../dist/webm-worker.js").then(r => r.arrayBuffer());
       worker = new Worker(createBufferURL(workerBuffer, "text/javascript"));
       // worker.postMessage("https://unpkg.com/webm-wasm@0.4.1/dist/webm-wasm.wasm");
-      worker.postMessage("http://localhost:8083/dist/webm-wasm.wasm");
+      worker.postMessage("http://localhost:8080/dist/webm-wasm.wasm");
       await nextEvent(worker, "message");
       worker.postMessage({
           width,
@@ -66,17 +67,19 @@ limitations under the License.
       let n = 0;
       return new ReadableStream({
           async start(controller) {
+              startTime = new Date();
+              console.log("Started...");
               return video.play()
           },
           async pull(controller) {
               await new Promise(r => setTimeout(r, frameTimeout))
-              if (count >= 30) {
+              if (count >= 120) {
                   controller.close();
                   worker.postMessage(null);
               } else {
                   count++;
-                  // ctx.drawImage(video, 0, 0, width, height);
-                  ctx.drawImage(video, -260, -160, 640, 480); // crop central portrait from vga resolution
+                  ctx.drawImage(video, 0, 0, width, height);
+                  // ctx.drawImage(video, -260, -160, 640, 480); // crop central portrait from vga resolution
                   controller.enqueue(
                       ctx.getImageData(0, 0, width, height)
                   );
@@ -96,6 +99,7 @@ limitations under the License.
   async function init() {
     worker.addEventListener("message", ev => {
       if (!ev.data) {
+          console.log((new Date() - startTime) / 1000 + " seconds");
           finished = true;
           console.log(ev.data, finished);
 
