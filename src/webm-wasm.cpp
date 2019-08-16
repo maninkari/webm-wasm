@@ -178,6 +178,7 @@ bool WebmEncoder::InitCodec(int timebase_num, int timebase_den, unsigned int wid
   cfg.g_w = width;
   cfg.g_h = height;
   cfg.g_threads = 1;
+  cfg.g_lag_in_frames = 0;
   cfg.rc_target_bitrate = bitrate;
 
   err = vpx_codec_enc_init(
@@ -195,6 +196,16 @@ bool WebmEncoder::InitCodec(int timebase_num, int timebase_den, unsigned int wid
     &ctx,
     VP9E_SET_LOSSLESS,
     1
+  );
+  if(err != VPX_CODEC_OK) {
+    last_error = std::string(vpx_codec_err_to_string(err));
+    return false;
+  }
+  // Set encoding speed
+  err = vpx_codec_control_(
+    &ctx,
+    VP8E_SET_CPUUSED,
+    9
   );
   if(err != VPX_CODEC_OK) {
     last_error = std::string(vpx_codec_err_to_string(err));
