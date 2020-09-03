@@ -74,6 +74,7 @@ echo "============================================="
     -s FILESYSTEM=0 \
     -s EXPORT_ES6=1 \
     -s MALLOC=emmalloc \
+    -s ENVIRONMENT="web" \
     --std=c++11 \
     -I node_modules/libyuv/include \
     -I node_modules/libvpx \
