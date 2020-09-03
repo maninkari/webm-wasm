@@ -12,7 +12,9 @@
 
 set -e
 
-export OPTIMIZE="-Os"
+# see https://emscripten.org/docs/tools_reference/emcc.html
+# export OPTIMIZE="-Os"
+export OPTIMIZE="-O1" # minimal optimisations
 export LDFLAGS="${OPTIMIZE}"
 export CFLAGS="${OPTIMIZE}"
 export CPPFLAGS="${OPTIMIZE}"
