@@ -35,14 +35,14 @@ void clear_image(vpx_image_t *img) ;
 
 class WebmEncoder {
   public:
-    WebmEncoder(int timebase_num, int timebase_den, unsigned int width, unsigned int height, unsigned int bitrate, bool realtime, bool klive, val cb);
+    WebmEncoder(int timebase_num, int timebase_den, unsigned int width, unsigned int height, unsigned int bitrate, bool realtime, bool klive, int losless, int speed, val cb);
     ~WebmEncoder();
     bool addRGBAFrame(std::string rgba);
     bool finalize();
     std::string lastError();
 
   private:
-    bool InitCodec(int timebase_num, int timebase_den, unsigned int width, unsigned int height, unsigned int bitrate);
+    bool InitCodec(int timebase_num, int timebase_den, unsigned int width, unsigned int height, unsigned int bitrate, int losless, int speed);
     bool InitMkvWriter(bool klive, val cb);
     bool InitImageBuffer();
 
@@ -60,9 +60,9 @@ class WebmEncoder {
     bool realtime = false;
 };
 
-WebmEncoder::WebmEncoder(int timebase_num, int timebase_den, unsigned int width, unsigned int height, unsigned int bitrate_kbps, bool realtime_, bool klive, val cb): realtime(realtime_) {
+WebmEncoder::WebmEncoder(int timebase_num, int timebase_den, unsigned int width, unsigned int height, unsigned int bitrate_kbps, bool realtime_, bool klive, int losless, int speed, val cb): realtime(realtime_) {
 
-  if(!InitCodec(timebase_num, timebase_den, width, height, bitrate_kbps)) {
+  if(!InitCodec(timebase_num, timebase_den, width, height, bitrate_kbps, losless ? 1 : 0, speed < -9 ? -9 : (speed > 9 ? 9 : speed))) {
     throw last_error;
   }
   if(!InitMkvWriter(klive, cb)) {
@@ -165,7 +165,7 @@ bool WebmEncoder::EncodeFrame(vpx_image_t *img) {
   return true;
 }
 
-bool WebmEncoder::InitCodec(int timebase_num, int timebase_den, unsigned int width, unsigned int height, unsigned int bitrate) {
+bool WebmEncoder::InitCodec(int timebase_num, int timebase_den, unsigned int width, unsigned int height, unsigned int bitrate, int losless, int speed) {
   vpx_codec_err_t err;
   err = vpx_codec_enc_config_default(iface, &cfg, 0);
   if(err != VPX_CODEC_OK) {
@@ -195,7 +195,7 @@ bool WebmEncoder::InitCodec(int timebase_num, int timebase_den, unsigned int wid
   err = vpx_codec_control_(
     &ctx,
     VP9E_SET_LOSSLESS,
-    1
+    losless
   );
   if(err != VPX_CODEC_OK) {
     last_error = std::string(vpx_codec_err_to_string(err));
@@ -205,7 +205,7 @@ bool WebmEncoder::InitCodec(int timebase_num, int timebase_den, unsigned int wid
   err = vpx_codec_control_(
     &ctx,
     VP8E_SET_CPUUSED,
-    9
+    speed
   );
   if(err != VPX_CODEC_OK) {
     last_error = std::string(vpx_codec_err_to_string(err));
@@ -313,7 +313,7 @@ void clear_image(vpx_image_t *img) {
 
 EMSCRIPTEN_BINDINGS(my_module) {
   class_<WebmEncoder>("WebmEncoder")
-    .constructor<int, int, unsigned int, unsigned int, unsigned int, bool, bool, val>()
+    .constructor<int, int, unsigned int, unsigned int, unsigned int, bool, bool, int, int, val>()
     .function("addRGBAFrame", &WebmEncoder::addRGBAFrame)
     .function("finalize", &WebmEncoder::finalize)
     .function("lastError", &WebmEncoder::lastError);

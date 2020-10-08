@@ -17,5 +17,7 @@ export default {
   timebaseNum: 1,
   timebaseDen: 30,
   bitrate: 200,
-  realtime: false
+  realtime: false,
+  losless: 1,
+  speed: 9
 };
