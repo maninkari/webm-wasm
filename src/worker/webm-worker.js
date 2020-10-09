@@ -86,7 +86,7 @@ async function init() {
     params.bitrate,
     params.realtime,
     params.kLive,
-    params.losless,
+    params.lossless,
     params.speed,
     chunk => {
       const copy = new Uint8Array(chunk);

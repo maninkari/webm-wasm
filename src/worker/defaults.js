@@ -18,6 +18,6 @@ export default {
   timebaseDen: 30,
   bitrate: 200,
   realtime: false,
-  losless: 1,
+  lossless: 1,
   speed: 9
 };
