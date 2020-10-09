@@ -86,6 +86,8 @@ async function init() {
     params.bitrate,
     params.realtime,
     params.kLive,
+    params.losless,
+    params.speed,
     chunk => {
       const copy = new Uint8Array(chunk);
       parentPort.postMessage(copy.buffer, [copy.buffer]);
