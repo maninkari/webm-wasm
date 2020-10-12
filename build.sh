@@ -12,7 +12,7 @@
 
 set -e
 
-export OPTIMIZE="-O3"
+export OPTIMIZE="-O0"
 export LDFLAGS="${OPTIMIZE}"
 export CFLAGS="${OPTIMIZE}"
 export CPPFLAGS="${OPTIMIZE}"
