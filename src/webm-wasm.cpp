@@ -39,6 +39,7 @@ class WebmEncoder {
     ~WebmEncoder();
     bool addRGBAFrame(std::string rgba);
     bool finalize();
+    bool closeEncoder(std::string rgba, std::string msg);
     std::string lastError();
 
   private:
@@ -86,7 +87,7 @@ WebmEncoder::~WebmEncoder() {
 bool WebmEncoder::addRGBAFrame(std::string rgba) {
   RGBAtoVPXImage((const uint8_t*) rgba.c_str());
   if(!EncodeFrame(img)) {
-  last_error = "Could not encode frame";
+    last_error = "Could not encode frame";
     return false;
   }
   if(!EncodeFrame(NULL)) {
@@ -115,6 +116,13 @@ bool WebmEncoder::finalize() {
     ((MyMkvWriter*)mkv_writer)->Notify();
   }
   return true;
+}
+
+bool WebmEncoder::closeEncoder(std::string rgba, std::string msg) {
+  bool lastFrame = this->addRGBAFrame(rgba);
+  printf("closemsg\n");
+  printf("praaaaaa\n");
+  return lastFrame && this->finalize();
 }
 
 std::string WebmEncoder::lastError() {
@@ -316,5 +324,6 @@ EMSCRIPTEN_BINDINGS(my_module) {
     .constructor<int, int, unsigned int, unsigned int, unsigned int, bool, bool, int, int, val>()
     .function("addRGBAFrame", &WebmEncoder::addRGBAFrame)
     .function("finalize", &WebmEncoder::finalize)
-    .function("lastError", &WebmEncoder::lastError);
+    .function("lastError", &WebmEncoder::lastError)
+    .function("closeEncoder", &WebmEncoder::closeEncoder);
 }

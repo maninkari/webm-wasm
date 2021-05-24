@@ -94,6 +94,7 @@ async function init() {
     }
   );
   onMessage(parentPort, msg => {
+    console.log(msg);
     // A false-y message indicates the end-of-stream.
     if (!msg) {
       // This will invoke the callback to flush
@@ -103,8 +104,16 @@ async function init() {
       // Free up the memory.
       instance.delete();
       return;
+    } 
+
+    if (msg.data) {
+      console.log(msg);
+      instance.closeEncoder(msg.buffer, msg.ccd);
+    } else {
+      instance.addRGBAFrame(msg);
     }
-    instance.addRGBAFrame(msg);
+
+    
   });
 }
 init();
