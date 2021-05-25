@@ -106,9 +106,10 @@ async function init() {
       return;
     } 
 
-    if (msg.data) {
+    if (!!msg.data && !!msg.data.last) {
       console.log(msg);
-      instance.closeEncoder(msg.buffer, msg.ccd);
+      
+      // instance.closeEncoder(msg.data.buffer, msg.data.ccd);
     } else {
       instance.addRGBAFrame(msg);
     }
