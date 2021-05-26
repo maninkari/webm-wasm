@@ -120,8 +120,8 @@ bool WebmEncoder::finalize() {
 
 bool WebmEncoder::closeEncoder(std::string rgba, std::string msg) {
   bool lastFrame = this->addRGBAFrame(rgba);
-  printf("closemsg\n");
-  printf("praaaaaa\n");
+  printf("C++\n");
+  printf("concatenate data here\n");
   return lastFrame && this->finalize();
 }
 

@@ -88,6 +88,7 @@ async function init() {
     params.kLive,
     params.lossless,
     params.speed,
+    // callback function:
     chunk => {
       const copy = new Uint8Array(chunk);
       parentPort.postMessage(copy.buffer, [copy.buffer]);
@@ -96,23 +97,22 @@ async function init() {
   onMessage(parentPort, msg => {
     console.log(msg);
     // A false-y message indicates the end-of-stream.
-    if (!msg) {
-      // This will invoke the callback to flush
-      instance.finalize();
-      // Signal the end-of-stream
-      parentPort.postMessage(null);
-      // Free up the memory.
-      instance.delete();
-      return;
-    } 
+    // if (!msg) {
+    //   // This will invoke the callback to flush
+    //   instance.finalize();
+    //   // Signal the end-of-stream
+    //   parentPort.postMessage(null);
+    //   // Free up the memory.
+    //   instance.delete();
+    //   return;
+    // } 
 
-    if (!!msg.data && !!msg.data.last) {
-      console.log(msg);
-      
-      // instance.closeEncoder(msg.data.buffer, msg.data.ccd);
-    } else {
-      instance.addRGBAFrame(msg);
-    }
+    // if (!!msg.data && msg.data.last) {
+    //   console.log(msg);
+    //   // instance.closeEncoder(msg.buffer, msg.ccd);
+    // } else {
+    //   instance.addRGBAFrame(msg);
+    // }
 
     
   });
