@@ -37,6 +37,11 @@ class MyMkvStreamWriter : public mkvmuxer::IMkvWriter {
 
   void Notify();
 
+  uint8_t* getBuf();
+  uint64_t getPos();
+  uint64_t getLen();
+  uint64_t getCap();
+
  private:
   uint8_t* buf;
   uint64_t pos;

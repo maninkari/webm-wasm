@@ -46,7 +46,25 @@ bool MyMkvStreamWriter::Seekable() const {
 void MyMkvStreamWriter::ElementStartNotify(uint64_t, int64_t) {
 }
 
+// returns array buffer
 void MyMkvStreamWriter::Notify() {
   cb(val(typed_memory_view(len, buf)));
   len = 0;
+}
+
+// getters
+uint8_t* MyMkvStreamWriter::getBuf() {
+  return this->buf;
+}
+
+uint64_t MyMkvStreamWriter::getPos() {
+  return this->pos;
+}
+
+uint64_t MyMkvStreamWriter::getLen() {
+  return this->len;
+}
+
+uint64_t MyMkvStreamWriter::getCap() {
+  return this->cap;
 }

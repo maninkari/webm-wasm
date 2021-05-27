@@ -1,0 +1,67 @@
+Arguments: 
+  /Users/roberto/.nvm/versions/node/v14.15.1/bin/node /usr/local/Cellar/yarn/1.22.5/libexec/bin/yarn.js build:dockerimage
+
+PATH: 
+  /usr/local/opt/llvm/bin:/Users/roberto/.nvm/versions/node/v14.15.1/bin:/Users/roberto/iProov/webAssembly/emsdk:/Users/roberto/iProov/webAssembly/emsdk/upstream/emscripten:/Users/roberto/iProov/webAssembly/emsdk/node/12.18.1_64bit/bin:/Users/roberto/iProov/webAssembly/emsdk/python/3.7.4-2_64bit/bin:/Users/roberto/.cargo/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:/Library/Apple/usr/bin
+
+Yarn version: 
+  1.22.5
+
+Node version: 
+  14.15.1
+
+Platform: 
+  darwin x64
+
+Trace: 
+  SyntaxError: /Users/roberto/iProov/fork/webm-wasm/package.json: Unexpected token 
+   in JSON at position 1178
+      at JSON.parse (<anonymous>)
+      at /usr/local/Cellar/yarn/1.22.5/libexec/lib/cli.js:1625:59
+      at Generator.next (<anonymous>)
+      at step (/usr/local/Cellar/yarn/1.22.5/libexec/lib/cli.js:310:30)
+      at /usr/local/Cellar/yarn/1.22.5/libexec/lib/cli.js:321:13
+
+npm manifest: 
+  {
+    "name": "webm-wasm",
+    "version": "0.4.1",
+    "description": "webm-wasm lets you create webm videos in JavaScript via WebAssembly.",
+    "scripts": {
+      "build:dockerimage": "docker image inspect -f '.' webmwasm || docker build -t webmwasm .",
+      "build:emscripten": "docker run --rm -v $(pwd):/src -e SKIP_LIBYUV=\"${SKIP_LIBYUV}\" -e SKIP_LIBVPX=\"${SKIP_LIBVPX}\" -e SKIP_LIBWEBM=\"${SKIP_LIBWEBM}\" webmwasm ./build.sh",
+      "build:emscriptenTest": "docker run --rm -v $(pwd):/src -e SKIP_LIBYUV=\"${SKIP_LIBYUV}\" -e SKIP_LIBVPX=\"${SKIP_LIBVPX}\" -e SKIP_LIBWEBM=\"${SKIP_LIBWEBM}\" webmwasm",
+      "build:bundle:worker": "microbundle build -f cjs --no-compress -o dist/webm-worker.js src/worker/webm-worker.js",
+      "build:bundle:transformstreamworker": "microbundle build -f cjs -o dist/webm-transformstreamworker.js src/worker/webm-transformstreamworker.js",
+      "build:bundle": "npm run build:bundle:worker && npm run build:bundle:transformstreamworker",
+      "build": "npm run build:dockerimage && npm run build:emscripten && npm run build:bundle",
+      "serve": "http-server -c0",
+      "dev": "npm run build:emscripten; npm run build:bundle:worker",
+      "build:c": " 
+    },
+    "repository": {
+      "type": "git",
+      "url": "https://github.com/GoogleChromeLabs/webm-wasm.git"
+    },
+    "napa-config": {
+      "cache": false
+    },
+    "napa": {
+      "libwebm": "webmproject/libwebm#libwebm-1.0.0.27",
+      "libvpx": "webmproject/libvpx#v1.9.0",
+      "libyuv": "git+https://chromium.googlesource.com/libyuv/libyuv"
+    },
+    "devDependencies": {
+      "http-server": "^0.11.1",
+      "microbundle": "^0.12.4",
+      "napa": "^3.0.0"
+    },
+    "author": "Surma <surma@google.com>",
+    "license": "Apache-2.0"
+  }
+
+yarn manifest: 
+  No manifest
+
+Lockfile: 
+  No lockfile

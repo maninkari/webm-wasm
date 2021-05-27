@@ -13,3 +13,17 @@ FROM trzeci/emscripten:1.38.48
 
 RUN apt-get update && \
     apt-get install -qqy doxygen
+
+# WORKDIR ./
+# COPY ./node_modules ./node_modules
+# COPY ./build.sh ./build.sh
+# COPY ./emcc.sh ./emcc.sh
+
+# RUN ./build.sh
+# COPY ./src ./src
+# RUN ./emcc.sh
+# RUN ls -la
+# RUN pwd
+# COPY ./README.md ./README.md
+
+    
