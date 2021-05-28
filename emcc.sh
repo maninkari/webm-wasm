@@ -26,11 +26,7 @@ echo "============================================="
     build-yuv/libyuv.a \
     build-vpx/libvpx.a \
     build-webm/libwebm.a
-  mkdir -p dist || true
-  mv webm-wasm.{js,wasm} dist
 )
-echo $(ls)
-echo $(pwd)
 echo "============================================="
 echo "Compiling wasm bindings done"
 echo "============================================="

@@ -4,8 +4,9 @@
   "description": "webm-wasm lets you create webm videos in JavaScript via WebAssembly.",
   "scripts": {
     "build:dockerimage": "docker image inspect -f '.' webmwasm || docker build -t webmwasm .",
-    "build:emscripten": "docker run --rm -v $(pwd):/src -e SKIP_LIBYUV=\"${SKIP_LIBYUV}\" -e SKIP_LIBVPX=\"${SKIP_LIBVPX}\" -e SKIP_LIBWEBM=\"${SKIP_LIBWEBM}\" webmwasm ./build.sh",
-    "build:emscriptenTest": "docker run -v $(pwd):/src webmwasm ./emcc.sh",
+    "build:emscLibs": "docker run --rm -v $(pwd):/src -e SKIP_LIBYUV=\"${SKIP_LIBYUV}\" -e SKIP_LIBVPX=\"${SKIP_LIBVPX}\" -e SKIP_LIBWEBM=\"${SKIP_LIBWEBM}\" webmwasm ./build.sh",
+    "build:emscCode": "docker run -v $(pwd):/src webmwasm ./emcc.sh && mkdir -p dist && mv webm-wasm.{js,wasm} dist",
+    "build:emscripten": "npm run emscLibs && npm run emscCode",
     "build:bundle:worker": "microbundle build -f cjs --no-compress -o dist/webm-worker.js src/worker/webm-worker.js",
     "build:bundle:transformstreamworker": "microbundle build -f cjs -o dist/webm-transformstreamworker.js src/worker/webm-transformstreamworker.js",
     "build:bundle": "npm run build:bundle:worker && npm run build:bundle:transformstreamworker",
