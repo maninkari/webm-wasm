@@ -12,7 +12,8 @@
     "build:bundle": "npm run build:bundle:worker && npm run build:bundle:transformstreamworker",
     "build": "npm run build:dockerimage && npm run build:emscripten && npm run build:bundle",
     "serve": "http-server -c0",
-    "dev": "npm run build:emscripten; npm run build:bundle:worker"
+    "dev": "npm run build:emscripten; npm run build:bundle:worker",
+    "2Ft": "cp ./dist/webm-wasm.* ../frametool/lib/webm2/"
   },
   "repository": {
     "type": "git",

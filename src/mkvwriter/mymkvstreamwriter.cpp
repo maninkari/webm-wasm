@@ -47,6 +47,7 @@ void MyMkvStreamWriter::ElementStartNotify(uint64_t, int64_t) {
 }
 
 // returns array buffer
+// es cuestion de agregar la data extra y devolverla con la calback function cb 
 void MyMkvStreamWriter::Notify() {
   cb(val(typed_memory_view(len, buf)));
   len = 0;
