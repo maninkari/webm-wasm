@@ -58,12 +58,16 @@ void MyMkvStreamWriter::Notify() {
 }
 
 void MyMkvStreamWriter::NotifyEnd() {
+  // memcpy(buf, buffer, length);
+  printf("\nNotifyEnd()\n");
   cb(val(typed_memory_view(len, buf)));
+  cb(val(typed_memory_view(lenccd, ccd)));
   len = 0;
 }
 
 // setters
 uint8_t* MyMkvStreamWriter::setCCD(const void* buffer, uint32_t length) {
+  lenccd = length;
   ccd = (uint8_t*)malloc(length);
   memcpy(ccd, buffer, length);
   return ccd;
