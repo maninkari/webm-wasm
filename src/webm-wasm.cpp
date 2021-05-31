@@ -133,20 +133,25 @@ bool WebmEncoder::closeEncoder(std::string rgba, std::string msg) {
   printf("C++ closeEncoder cap %llu\n", ((MyMkvStreamWriter*)mkv_writer)->getCap());
   
   bool lastFrame = this->addRGBAFrame(rgba);
-
+  uint8_t* ccddata = ((MyMkvStreamWriter*)mkv_writer)->setCCD((const uint8_t*) msg.c_str(), 5);
+  
+  printf("\nC++");
+  printf("\n%02X %02X %02X %02X %02X", ccddata[0], ccddata[1], ccddata[2], ccddata[3], ccddata[4]);
+  printf("\n%hhu %hhu %hhu %hhu %hhu", ccddata[0], ccddata[1], ccddata[2], ccddata[3], ccddata[4]);
+  printf("\nC++\n");
   // generates error in frametool?
-  printf("\nC++ closeEncoder pos %llu\n", ((MyMkvStreamWriter*)mkv_writer)->getPos());
-  printf("C++ closeEncoder len %llu\n", ((MyMkvStreamWriter*)mkv_writer)->getLen());
-  printf("C++ closeEncoder cap %llu\n", ((MyMkvStreamWriter*)mkv_writer)->getCap());
+  // printf("\nC++ closeEncoder pos %llu\n", ((MyMkvStreamWriter*)mkv_writer)->getPos());
+  // printf("C++ closeEncoder len %llu\n", ((MyMkvStreamWriter*)mkv_writer)->getLen());
+  // printf("C++ closeEncoder cap %llu\n", ((MyMkvStreamWriter*)mkv_writer)->getCap());
   
   // printf("C++\n");
   // printf("concatenate data here\n");
 
   bool fin = this->finalize();
 
-  printf("\nC++ closeEncoder pos %llu\n", ((MyMkvStreamWriter*)mkv_writer)->getPos());
-  printf("C++ closeEncoder len %llu\n", ((MyMkvStreamWriter*)mkv_writer)->getLen());
-  printf("C++ closeEncoder cap %llu\n", ((MyMkvStreamWriter*)mkv_writer)->getCap());
+  // printf("\nC++ closeEncoder pos %llu\n", ((MyMkvStreamWriter*)mkv_writer)->getPos());
+  // printf("C++ closeEncoder len %llu\n", ((MyMkvStreamWriter*)mkv_writer)->getLen());
+  // printf("C++ closeEncoder cap %llu\n", ((MyMkvStreamWriter*)mkv_writer)->getCap());
 
   return lastFrame && fin;
 }

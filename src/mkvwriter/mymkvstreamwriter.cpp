@@ -20,11 +20,15 @@ MyMkvStreamWriter::MyMkvStreamWriter(val cb_) : cb(cb_), pos(0), len(0), cap(102
 MyMkvStreamWriter::~MyMkvStreamWriter() {
 }
 
+// https://www.tutorialspoint.com/c_standard_library/c_function_realloc.htm
 int32_t MyMkvStreamWriter::Write(const void* buffer, uint32_t length) {
   while(len + length >= cap) {
     cap *= 2;
     buf = (uint8_t*) realloc((void*)buf, cap);
   }
+  // buf + len is where the new pointer should point
+  // buffer gets copied into buf + len position
+  // 'lenght' bytes of buffer get copied into buf + len 
   memcpy(buf + len, buffer, length);
   len += length;
   pos += length;
@@ -53,9 +57,25 @@ void MyMkvStreamWriter::Notify() {
   len = 0;
 }
 
+void MyMkvStreamWriter::NotifyEnd() {
+  cb(val(typed_memory_view(len, buf)));
+  len = 0;
+}
+
+// setters
+uint8_t* MyMkvStreamWriter::setCCD(const void* buffer, uint32_t length) {
+  ccd = (uint8_t*)malloc(length);
+  memcpy(ccd, buffer, length);
+  return ccd;
+}
+
 // getters
 uint8_t* MyMkvStreamWriter::getBuf() {
   return this->buf;
+}
+
+uint8_t* MyMkvStreamWriter::getCCD() {
+  return this->ccd;
 }
 
 uint64_t MyMkvStreamWriter::getPos() {

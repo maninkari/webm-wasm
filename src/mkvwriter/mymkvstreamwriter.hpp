@@ -36,14 +36,19 @@ class MyMkvStreamWriter : public mkvmuxer::IMkvWriter {
   virtual void ElementStartNotify(uint64_t element_id, int64_t position);
 
   void Notify();
+  void NotifyEnd();
+
+  uint8_t* setCCD(const void* buffer, uint32_t length);
 
   uint8_t* getBuf();
+  uint8_t* getCCD();
   uint64_t getPos();
   uint64_t getLen();
   uint64_t getCap();
 
  private:
   uint8_t* buf;
+  uint8_t* ccd;
   uint64_t pos;
   uint64_t len;
   uint64_t cap;
