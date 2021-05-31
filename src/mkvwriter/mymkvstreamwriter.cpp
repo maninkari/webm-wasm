@@ -51,17 +51,22 @@ void MyMkvStreamWriter::ElementStartNotify(uint64_t, int64_t) {
 }
 
 // returns array buffer
-// es cuestion de agregar la data extra y devolverla con la calback function cb 
 void MyMkvStreamWriter::Notify() {
   cb(val(typed_memory_view(len, buf)));
   len = 0;
 }
 
 void MyMkvStreamWriter::NotifyEnd() {
-  // memcpy(buf, buffer, length);
   printf("\nNotifyEnd()\n");
-  cb(val(typed_memory_view(len, buf)));
-  cb(val(typed_memory_view(lenccd, ccd)));
+
+  // expand the buffer capacity adding the ccd bytes
+  buf = (uint8_t*) realloc((void*)buf, len + lenccd);
+  
+  // copy the ccd bytes to the buffer at the position buf + len
+  memcpy(buf + len, ccd, lenccd);
+
+  // return new merged arraybuffer using the callback function
+  cb(val(typed_memory_view(len+lenccd, buf))); 
   len = 0;
 }
 
